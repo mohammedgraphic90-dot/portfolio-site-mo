@@ -9,12 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [busy, setBusy] = useState(false);
-
-  // هنخزن الرسالة الحقيقية هنا
   const [err, setErr] = useState<string | null>(null);
-
-  // لو عايز تعرض تفاصيل زيادة (اختياري)
-  const [errDetails, setErrDetails] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -22,39 +17,29 @@ export default function LoginPage() {
     e.preventDefault();
     setBusy(true);
     setErr(null);
-    setErrDetails(null);
 
     try {
       const supabase = getSupabaseBrowser();
 
-      const cleanEmail = email.trim();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-     const { data, error } = await supabase.auth.signInWithPassword({
-  email: email.trim(),
-  password,
-});
+      if (error) {
+        setErr(error.message || "Invalid email or password.");
+        return;
+      }
 
-if (error) {
-  console.error("supabase login error:", error);
-  setErr(`${error.message} (${error.status ?? "no-status"})`);
-  return;
-}
-
-console.log("login ok:", data);
-router.push("/dashboard");
-
+      // أمان إضافي: لو مفيش session لأي سبب
       if (!data?.session) {
-        console.warn("No session returned:", data);
-        setErr("Signed in but no session returned. Check Supabase settings.");
-        setErrDetails(JSON.stringify(data, null, 2));
+        setErr("Signed in but no session returned. Please try again.");
         return;
       }
 
       router.push("/dashboard");
     } catch (e: any) {
-      console.error("Login unexpected error:", e);
       setErr(e?.message || "Unexpected error.");
-      setErrDetails(JSON.stringify(e, null, 2));
     } finally {
       setBusy(false);
     }
@@ -90,22 +75,7 @@ router.push("/dashboard");
             />
           </div>
 
-          {err ? (
-            <div className="text-sm text-red-400 space-y-2">
-              <div>{err}</div>
-
-              {errDetails ? (
-                <details className="text-xs text-red-300/90 whitespace-pre-wrap">
-                  <summary className="cursor-pointer select-none">
-                    Show technical details
-                  </summary>
-                  <pre className="mt-2 bg-black/30 border border-white/10 rounded-xl p-3 overflow-auto">
-                    {errDetails}
-                  </pre>
-                </details>
-              ) : null}
-            </div>
-          ) : null}
+          {err ? <p className="text-sm text-red-400">{err}</p> : null}
 
           <button
             disabled={busy}
