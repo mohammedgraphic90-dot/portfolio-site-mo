@@ -7,29 +7,67 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [busy, setBusy] = useState(false);
+
+  // هنخزن الرسالة الحقيقية هنا
   const [err, setErr] = useState<string | null>(null);
+
+  // لو عايز تعرض تفاصيل زيادة (اختياري)
+  const [errDetails, setErrDetails] = useState<string | null>(null);
+
   const router = useRouter();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setErr(null);
+    setErrDetails(null);
 
     try {
       const supabase = getSupabaseBrowser();
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+      const cleanEmail = email.trim();
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
         password,
       });
 
       if (error) {
-        setErr("Invalid email or password.");
+        // ده أهم سطرين للتشخيص
+        console.error("Supabase signInWithPassword error:", error);
+
+        setErr(error.message || "Login failed.");
+        // تفاصيل إضافية لو احتجناها
+        setErrDetails(
+          JSON.stringify(
+            {
+              name: (error as any)?.name,
+              status: (error as any)?.status,
+              code: (error as any)?.code,
+              message: error.message,
+            },
+            null,
+            2
+          )
+        );
+        return;
+      }
+
+      // احتياط: لو مفيش session رغم عدم وجود error
+      if (!data?.session) {
+        console.warn("No session returned:", data);
+        setErr("Signed in but no session returned. Check Supabase settings.");
+        setErrDetails(JSON.stringify(data, null, 2));
         return;
       }
 
       router.push("/dashboard");
+    } catch (e: any) {
+      console.error("Login unexpected error:", e);
+      setErr(e?.message || "Unexpected error.");
+      setErrDetails(JSON.stringify(e, null, 2));
     } finally {
       setBusy(false);
     }
@@ -65,7 +103,22 @@ export default function LoginPage() {
             />
           </div>
 
-          {err ? <p className="text-sm text-red-400">{err}</p> : null}
+          {err ? (
+            <div className="text-sm text-red-400 space-y-2">
+              <div>{err}</div>
+
+              {errDetails ? (
+                <details className="text-xs text-red-300/90 whitespace-pre-wrap">
+                  <summary className="cursor-pointer select-none">
+                    Show technical details
+                  </summary>
+                  <pre className="mt-2 bg-black/30 border border-white/10 rounded-xl p-3 overflow-auto">
+                    {errDetails}
+                  </pre>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
 
           <button
             disabled={busy}
