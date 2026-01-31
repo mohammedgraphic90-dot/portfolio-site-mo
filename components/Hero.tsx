@@ -212,7 +212,7 @@ export default App;`;
                 transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
                 className="absolute -top-12 -right-12 w-24 h-24 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(20px)]"
               >
-                <span className="text-4xl drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                <span className="absolute -top-12 -right-12 z-30 w-24 h-24 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(40px)]">
                   🚀
                 </span>
               </motion.div>
@@ -222,7 +222,8 @@ export default App;`;
                 transition={{ duration: 5, repeat: Infinity, delay: 1 }}
                 className="absolute -bottom-8 -left-8 w-20 h-20 bg-slate-900/90 backdrop-blur-md border border-teal-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(30px)]"
               >
-                <span className="text-2xl font-bold text-white font-mono">UI</span>
+                <span className="absolute -bottom-8 -left-8 z-20 w-20 h-20 bg-slate-900/90 backdrop-blur-md border border-teal-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(30px)]"
+>UI</span>
               </motion.div>
             </div>
           </motion.div>
