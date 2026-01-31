@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { contactSchema } from "@/lib/validation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { simpleRateLimit } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 function getIp(req: Request) {
   const xf = req.headers.get("x-forwarded-for");
-  if (!xf) return "unknown";
-  return xf.split(",")[0]?.trim() || "unknown";
+  if (xf) return xf.split(",")[0]?.trim() || "unknown";
+  const xr = req.headers.get("x-real-ip");
+  if (xr) return xr.trim() || "unknown";
+  return "unknown";
 }
 
 export async function POST(req: Request) {
@@ -16,11 +18,19 @@ export async function POST(req: Request) {
     const ip = getIp(req);
     const ua = req.headers.get("user-agent") || "";
 
-    const rl = simpleRateLimit(ip, 5, 60_000); 
+    const rl = await rateLimit(`contact:${ip}`, 5, 60_000);
     if (!rl.ok) {
       return NextResponse.json(
-        { ok: false, message: "طلبات كثيرة. حاول لاحقًا." },
-        { status: 429, headers: { "Retry-After": "60" } }
+        { ok: false, message: "Too many requests. Try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))),
+            "RateLimit-Limit": String(rl.limit),
+            "RateLimit-Remaining": String(rl.remaining),
+            "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+          },
+        }
       );
     }
 
@@ -28,10 +38,7 @@ export async function POST(req: Request) {
     const parsed = contactSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { ok: false, message: "بيانات غير صحيحة." },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "Invalid data." }, { status: 400 });
     }
 
     if (parsed.data.company && parsed.data.company.trim().length > 0) {
@@ -48,17 +55,20 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      return NextResponse.json(
-        { ok: false, message: "حدث خطأ أثناء الإرسال." },
-        { status: 500 }
-      );
+      return NextResponse.json({ ok: false, message: "Failed to send message." }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch {
     return NextResponse.json(
-      { ok: false, message: "تعذر معالجة الطلب." },
-      { status: 500 }
+      { ok: true },
+      {
+        headers: {
+          "RateLimit-Limit": String(rl.limit),
+          "RateLimit-Remaining": String(rl.remaining),
+          "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+        },
+      }
     );
+  } catch {
+    return NextResponse.json({ ok: false, message: "Failed to process request." }, { status: 500 });
   }
 }

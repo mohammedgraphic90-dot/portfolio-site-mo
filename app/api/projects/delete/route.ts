@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
+
+function getIp(req: Request) {
+  const xf = req.headers.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0]?.trim() || "unknown";
+  const xr = req.headers.get("x-real-ip");
+  if (xr) return xr.trim() || "unknown";
+  return "unknown";
+}
 
 async function requireAdmin(req: Request) {
   const supabase = getSupabaseAdmin();
@@ -25,6 +34,24 @@ async function requireAdmin(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const ip = getIp(req);
+
+    const rl = await rateLimit(`delete_project:${ip}`, 30, 60_000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { ok: false, message: "Too many requests. Try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))),
+            "RateLimit-Limit": String(rl.limit),
+            "RateLimit-Remaining": String(rl.remaining),
+            "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+          },
+        }
+      );
+    }
+
     const gate = await requireAdmin(req);
     if (!gate.ok) {
       return NextResponse.json({ ok: false, message: gate.message }, { status: gate.status });
@@ -32,7 +59,7 @@ export async function POST(req: Request) {
     const supabase = gate.supabase;
 
     const body = await req.json();
-    const id = Number(body.id);
+    const id = Number((body as any).id);
 
     if (!Number.isFinite(id)) {
       return NextResponse.json({ ok: false, message: "Invalid id." }, { status: 400 });
@@ -43,9 +70,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Delete failed." }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error(e);
+    return NextResponse.json(
+      { ok: true },
+      {
+        headers: {
+          "RateLimit-Limit": String(rl.limit),
+          "RateLimit-Remaining": String(rl.remaining),
+          "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+        },
+      }
+    );
+  } catch {
     return NextResponse.json({ ok: false, message: "Server error." }, { status: 500 });
   }
 }

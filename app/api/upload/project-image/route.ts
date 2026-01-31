@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { simpleRateLimit } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
 import { getPublicStorageUrl } from "@/lib/storagePublicUrl";
 
 export const runtime = "nodejs";
 
 function getIp(req: Request) {
   const xf = req.headers.get("x-forwarded-for");
-  if (!xf) return "unknown";
-  return xf.split(",")[0]?.trim() || "unknown";
+  if (xf) return xf.split(",")[0]?.trim() || "unknown";
+  const xr = req.headers.get("x-real-ip");
+  if (xr) return xr.trim() || "unknown";
+  return "unknown";
 }
 
 function safeFileName(name: string) {
@@ -22,11 +24,19 @@ export async function POST(req: Request) {
   try {
     const ip = getIp(req);
 
-    const rl = simpleRateLimit(`upload:${ip}`, 10, 60_000);
+    const rl = await rateLimit(`upload:${ip}`, 10, 60_000);
     if (!rl.ok) {
       return NextResponse.json(
         { ok: false, message: "Too many uploads. Try again later." },
-        { status: 429, headers: { "Retry-After": "60" } }
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))),
+            "RateLimit-Limit": String(rl.limit),
+            "RateLimit-Remaining": String(rl.remaining),
+            "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+          },
+        }
       );
     }
 
@@ -37,7 +47,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Missing file." }, { status: 400 });
     }
 
-    const maxBytes = 5 * 1024 * 1024; // 5MB
+    const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) {
       return NextResponse.json({ ok: false, message: "File too large (max 5MB)." }, { status: 400 });
     }
@@ -47,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Unsupported file type." }, { status: 400 });
     }
 
-    const bucket = "portfolio"; 
+    const bucket = "portfolio";
     const ext = file.name.split(".").pop() || "jpg";
     const filename = safeFileName(file.name || `image.${ext}`);
     const path = `projects/${crypto.randomUUID()}-${filename}`;
@@ -63,8 +73,18 @@ export async function POST(req: Request) {
     }
 
     const url = getPublicStorageUrl(bucket, path);
-    return NextResponse.json({ ok: true, path, url });
-  } catch (e) {
+
+    return NextResponse.json(
+      { ok: true, path, url },
+      {
+        headers: {
+          "RateLimit-Limit": String(rl.limit),
+          "RateLimit-Remaining": String(rl.remaining),
+          "RateLimit-Reset": String(Math.ceil(rl.reset / 1000)),
+        },
+      }
+    );
+  } catch {
     return NextResponse.json({ ok: false, message: "Server error." }, { status: 500 });
   }
 }
