@@ -29,33 +29,20 @@ export default function LoginPage() {
 
       const cleanEmail = email.trim();
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
+     const { data, error } = await supabase.auth.signInWithPassword({
+  email: email.trim(),
+  password,
+});
 
-      if (error) {
-        // ده أهم سطرين للتشخيص
-        console.error("Supabase signInWithPassword error:", error);
+if (error) {
+  console.error("supabase login error:", error);
+  setErr(`${error.message} (${error.status ?? "no-status"})`);
+  return;
+}
 
-        setErr(error.message || "Login failed.");
-        // تفاصيل إضافية لو احتجناها
-        setErrDetails(
-          JSON.stringify(
-            {
-              name: (error as any)?.name,
-              status: (error as any)?.status,
-              code: (error as any)?.code,
-              message: error.message,
-            },
-            null,
-            2
-          )
-        );
-        return;
-      }
+console.log("login ok:", data);
+router.push("/dashboard");
 
-      // احتياط: لو مفيش session رغم عدم وجود error
       if (!data?.session) {
         console.warn("No session returned:", data);
         setErr("Signed in but no session returned. Check Supabase settings.");
