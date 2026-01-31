@@ -1,13 +1,15 @@
 import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
+import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
-export default function HomePage() {
+export const dynamic = "force-static";
+
+export default function ContactPage() {
   return (
     <div className="font-sans antialiased text-slate-200 bg-slate-950 selection:bg-teal-400/30 selection:text-teal-200">
       <Navbar />
       <main>
-        <Hero />
+        <Contact />
       </main>
       <Footer />
     </div>
