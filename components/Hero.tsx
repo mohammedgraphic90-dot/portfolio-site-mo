@@ -125,9 +125,9 @@ export default App;`;
             className="relative z-10 w-full max-w-md"
           >
             <div className="relative w-64 h-64 md:w-80 md:h-80 mx-auto [transform-style:preserve-3d] [transform:rotateY(12deg)_rotateX(6deg)]">
-              <div className="absolute inset-0 bg-gradient-to-tr from-purple-600 to-teal-400 rounded-3xl blur-2xl opacity-40 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-purple-600 to-teal-400 rounded-3xl blur-2xl opacity-40 animate-pulse" />
 
-              <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden [transform:translateZ(10px)] group">
+              <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-visible [transform:translateZ(10px)] group">
                 <div className="absolute inset-0 opacity-10 font-mono text-[10px] leading-4 text-teal-400 p-4 select-none pointer-events-none">
                   <motion.div
                     animate={{ y: [0, -300] }}
@@ -138,11 +138,11 @@ export default App;`;
                   </motion.div>
                 </div>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-0"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-0" />
 
                 <div className="relative z-10 flex flex-col items-center justify-center h-full p-6">
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 mb-6 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 blur-xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="absolute inset-0 bg-white/20 blur-xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-500" />
                     <span className="text-3xl font-bold text-white relative z-10">
                       &lt;/&gt;
                     </span>
@@ -161,7 +161,7 @@ export default App;`;
                           transition={{ duration: 2, delay: 0.5 }}
                           className="h-full bg-gradient-to-r from-teal-400 to-purple-500 relative"
                         >
-                          <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                          <div className="absolute inset-0 bg-white/30 animate-pulse" />
                         </motion.div>
                       </div>
                     </div>
@@ -174,8 +174,8 @@ export default App;`;
                         <div>
                           <div className="flex items-center gap-1.5">
                             <div className="relative w-1.5 h-1.5">
-                              <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                              <div className="relative w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                              <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75" />
+                              <div className="relative w-1.5 h-1.5 bg-green-500 rounded-full" />
                             </div>
                             <span className="text-[10px] font-bold text-white tracking-wider">
                               SYSTEM ACTIVE
@@ -207,24 +207,33 @@ export default App;`;
                 </div>
               </div>
 
-              <motion.div
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-                className="absolute -top-12 -right-12 w-24 h-24 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(20px)]"
+              <div
+                className="absolute -top-12 -right-12 z-30 w-24 h-24 [transform:translateZ(40px)]"
+                style={{ transformStyle: "preserve-3d" }}
               >
-                <span className="absolute -top-12 -right-12 z-30 w-24 h-24 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(40px)]">
-                  🚀
-                </span>
-              </motion.div>
+                <motion.div
+                  animate={{ y: [0, -15, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
+                  className="w-24 h-24 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-2xl shadow-xl flex items-center justify-center"
+                >
+                  <span className="text-4xl drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                    🚀
+                  </span>
+                </motion.div>
+              </div>
 
-              <motion.div
-                animate={{ y: [0, 15, 0] }}
-                transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                className="absolute -bottom-8 -left-8 w-20 h-20 bg-slate-900/90 backdrop-blur-md border border-teal-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(30px)]"
+              <div
+                className="absolute -bottom-8 -left-8 z-20 w-20 h-20 [transform:translateZ(30px)]"
+                style={{ transformStyle: "preserve-3d" }}
               >
-                <span className="absolute -bottom-8 -left-8 z-20 w-20 h-20 bg-slate-900/90 backdrop-blur-md border border-teal-500/30 rounded-2xl shadow-xl flex items-center justify-center [transform:translateZ(30px)]"
->UI</span>
-              </motion.div>
+                <motion.div
+                  animate={{ y: [0, 15, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+                  className="w-20 h-20 bg-slate-900/90 backdrop-blur-md border border-teal-500/30 rounded-2xl shadow-xl flex items-center justify-center"
+                >
+                  <span className="text-2xl font-bold text-white font-mono">UI</span>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
