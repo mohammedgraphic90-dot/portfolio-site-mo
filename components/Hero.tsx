@@ -62,37 +62,7 @@ export default App;`;
             </a>
           </div>
 
-          <div className="mt-10 flex items-center justify-center md:justify-start gap-6 text-slate-400">
-            <a
-              href="https://google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white hover:scale-110 transition-all"
-              aria-label="GitHub"
-            >
-              <Github size={24} />
-            </a>
-
-            <a
-              href="https://google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-400 hover:scale-110 transition-all"
-              aria-label="Twitter"
-            >
-              <Twitter size={24} />
-            </a>
-
-            <a
-              href="https://google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-600 hover:scale-110 transition-all"
-              aria-label="LinkedIn"
-            >
-              <Linkedin size={24} />
-            </a>
-          </div>
+     
         </div>
 
         <div className="order-1 md:order-2 relative h-[400px] md:h-[600px] flex items-center justify-center perspective-1000">
