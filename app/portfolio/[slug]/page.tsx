@@ -17,6 +17,17 @@ type DbProject = {
   project_url: string | null;
 };
 
+function normalizeExternalUrl(input: string) {
+  const raw = (input ?? "").trim();
+  if (!raw) return "";
+
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+
+  return `https://${raw}`;
+}
+
 async function getProjectBySlug(slug: string) {
   const supabase = getSupabasePublic();
 
@@ -42,18 +53,17 @@ async function getProjectBySlug(slug: string) {
   };
 }
 
-
-
 export default async function ProjectDetailsPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params; 
+  const { slug } = await params;
   const project = await getProjectBySlug(slug);
 
-
   if (!project) notFound();
+
+  const liveUrl = project.url ? normalizeExternalUrl(project.url) : "";
 
   return (
     <div className="font-sans antialiased text-slate-200 bg-slate-950 selection:bg-teal-400/30 selection:text-teal-200">
@@ -61,7 +71,10 @@ export default async function ProjectDetailsPage({
 
       <main className="container mx-auto px-6 pt-28 pb-20">
         <div className="mb-8">
-          <Link href="/portfolio" className="text-slate-400 hover:text-white transition-colors">
+          <Link
+            href="/portfolio"
+            className="text-slate-400 hover:text-white transition-colors"
+          >
             ← Back to Portfolio
           </Link>
         </div>
@@ -94,14 +107,14 @@ export default async function ProjectDetailsPage({
             </p>
 
             <div className="flex flex-wrap gap-4">
-              {project.url ? (
+              {liveUrl ? (
                 <a
-                  href={project.url}
+                  href={liveUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-bold hover:shadow-[0_10px_30px_rgba(109,40,217,0.35)] transition-all"
                 >
-                  Live Demo
+                  Live
                 </a>
               ) : null}
 
@@ -112,6 +125,8 @@ export default async function ProjectDetailsPage({
                 Contact Me
               </Link>
             </div>
+
+
           </div>
         </div>
       </main>

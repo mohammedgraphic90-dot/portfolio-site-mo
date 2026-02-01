@@ -1,5 +1,3 @@
-// D:\portfolio-site-mo\components\Portfolio.tsx
-
 import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, Eye } from "lucide-react";
@@ -14,6 +12,17 @@ type PortfolioProject = {
   description: string;
   url?: string;
 };
+
+function normalizeExternalUrl(input: string) {
+  const raw = (input ?? "").trim();
+  if (!raw) return "";
+
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+
+  return `https://${raw}`;
+}
 
 export default function Portfolio({ projects }: { projects: PortfolioProject[] }) {
   return (
@@ -76,12 +85,12 @@ export default function Portfolio({ projects }: { projects: PortfolioProject[] }
 
                   {project.url ? (
                     <a
-                      href={project.url}
+                      href={normalizeExternalUrl(project.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm font-bold text-white hover:text-teal-400 transition-colors"
                     >
-                      Live demo
+                      Live
                       <ExternalLink size={16} />
                     </a>
                   ) : (
