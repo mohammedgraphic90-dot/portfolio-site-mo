@@ -1,5 +1,3 @@
-"use client";
-
 import { Instagram, MessageCircle, Heart } from "lucide-react";
 
 export default function Footer() {
@@ -17,7 +15,6 @@ export default function Footer() {
           </div>
 
           <div className="flex gap-4">
-            {/* Instagram */}
             <a
               href={instagramUrl}
               target="_blank"
@@ -28,7 +25,6 @@ export default function Footer() {
               <Instagram size={20} />
             </a>
 
-            {/* WhatsApp */}
             <a
               href={whatsappUrl}
               target="_blank"

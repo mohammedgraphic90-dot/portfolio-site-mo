@@ -1,6 +1,14 @@
 import "./globals.css";
+import type { Metadata } from "next";
+import { Cairo } from "next/font/google";
 
-export const metadata = {
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
   title: "Mohammed Ayman Portfolio",
   description: "Portfolio",
 };
@@ -8,7 +16,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr">
-      <body>{children}</body>
+      <body className={cairo.className}>{children}</body>
     </html>
   );
 }

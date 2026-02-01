@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -7,30 +6,30 @@ module.exports = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ["Cairo", "sans-serif"],
-      },
       colors: {
         primary: "#6d28d9",
         secondary: "#2dd4bf",
         dark: "#0f172a",
         surface: "#1e293b",
       },
-      animation: {
-        blob: "blob 7s infinite",
-        float: "float 6s ease-in-out infinite",
-      },
       keyframes: {
-        blob: {
-          "0%": { transform: "translate(0px, 0px) scale(1)" },
-          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
-          "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
-          "100%": { transform: "translate(0px, 0px) scale(1)" },
+        heroFloat: {
+          "0%, 100%": { transform: "translateY(0) rotateZ(0deg)" },
+          "50%": { transform: "translateY(-20px) rotateZ(2deg)" },
         },
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-20px)" },
+        codeScroll: {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-300px)" },
         },
+        activity: {
+          "0%, 100%": { transform: "scaleY(0.25)" },
+          "50%": { transform: "scaleY(1)" },
+        },
+      },
+      animation: {
+        heroFloat: "heroFloat 6s ease-in-out infinite",
+        codeScroll: "codeScroll 15s linear infinite",
+        activity: "activity 1.2s ease-in-out infinite",
       },
     },
   },
