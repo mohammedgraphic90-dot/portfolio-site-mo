@@ -1,0 +1,27 @@
+name: supabase-keepalive
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - name: Validate secrets
+        run: |
+          test -n "$NEXT_PUBLIC_SUPABASE_URL" || (echo "NEXT_PUBLIC_SUPABASE_URL is empty" && exit 1)
+          test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" || (echo "NEXT_PUBLIC_SUPABASE_ANON_KEY is empty" && exit 1)
+
+      - name: Ping Supabase projects table
+        run: |
+          SUPABASE_REST_URL="${NEXT_PUBLIC_SUPABASE_URL%/}/rest/v1/projects?select=id&is_published=eq.true&limit=1"
+          curl -sS -f \
+            -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+            "$SUPABASE_REST_URL" > /dev/null
