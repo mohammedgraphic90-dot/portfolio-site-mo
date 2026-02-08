@@ -67,7 +67,7 @@ type ProjectRequestRow = {
   archived_at: string | null;
 };
 
-type CreateResult = { ok: boolean; slug?: string; message?: string };
+type ProjectActionResult = { ok: boolean; slug?: string; message?: string; revalidated?: boolean };
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -339,25 +339,38 @@ export default function DashboardPage() {
 
     setBusyAction(true);
     try {
-      const { error: e1 } = await supabase
-        .from("projects")
-        .update({ sort_order: b.sort_order })
-        .eq("id", a.id);
+      const token = await getAccessToken();
+      const res = await fetch("/api/projects/reorder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          aId: a.id,
+          bId: b.id,
+        }),
+      });
 
-      const { error: e2 } = await supabase
-        .from("projects")
-        .update({ sort_order: a.sort_order })
-        .eq("id", b.id);
-
-      if (e1 || e2) {
-        console.error("reorder error:", e1 || e2);
+      const data: ProjectActionResult | null = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        console.error("reorder error:", data?.message);
         await loadProjects();
+        alert(data?.message || "Reorder failed.");
       } else {
         const fixed = [...next];
         fixed[targetIndex] = { ...fixed[targetIndex], sort_order: a.sort_order };
         fixed[index] = { ...fixed[index], sort_order: b.sort_order };
         setProjects(fixed);
+
+        if (data.revalidated === false) {
+          alert("Order was saved, but static cache refresh failed. Please refresh again.");
+        }
       }
+    } catch (e: unknown) {
+      console.error("reorder error:", e);
+      await loadProjects();
+      alert("Reorder failed.");
     } finally {
       setBusyAction(false);
     }
@@ -375,12 +388,32 @@ export default function DashboardPage() {
 
     setBusyAction(true);
     try {
-      const { error } = await supabase.from("projects").delete().eq("id", id);
-      if (error) {
-        console.error("delete project error:", error);
+      const token = await getAccessToken();
+
+      const res = await fetch("/api/projects/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data: ProjectActionResult | null = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        console.error("delete project error:", data?.message);
         setProjects(prev);
-        alert("Delete failed.");
+        alert(data?.message || "Delete failed.");
+        return;
       }
+
+      if (data.revalidated === false) {
+        alert("Project deleted, but static cache refresh failed. Please refresh again.");
+      }
+    } catch (e: unknown) {
+      console.error("delete project error:", e);
+      setProjects(prev);
+      alert("Delete failed.");
     } finally {
       setBusyAction(false);
     }
@@ -408,7 +441,7 @@ export default function DashboardPage() {
         }),
       });
 
-      const data: CreateResult = await res.json();
+      const data: ProjectActionResult = await res.json();
 
       if (!res.ok || !data.ok) {
         alert(data.message || "Create failed");
@@ -426,6 +459,10 @@ export default function DashboardPage() {
       setAddUploadError(null);
 
       await loadProjects();
+
+      if (data.revalidated === false) {
+        alert("Project added, but static cache refresh failed. Please refresh again.");
+      }
 
       if (data.slug) window.open(`/portfolio/${data.slug}`, "_blank");
     } finally {
@@ -489,7 +526,7 @@ export default function DashboardPage() {
         }),
       });
 
-      const data = await res.json().catch(() => null);
+      const data: ProjectActionResult | null = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
         alert(data?.message || "Update failed");
         return;
@@ -498,6 +535,10 @@ export default function DashboardPage() {
       setIsEditing(false);
       setEditProject(null);
       await loadProjects();
+
+      if (data.revalidated === false) {
+        alert("Project updated, but static cache refresh failed. Please refresh again.");
+      }
     } catch (e: any) {
       console.error("edit project error:", e);
       alert(e?.message || "Update failed");

@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns,
   },
+  async redirects() {
+    return [
+      {
+        source: "/portfolio",
+        has: [{ type: "query", key: "page", value: "(?<page>[0-9]+)" }],
+        destination: "/portfolio/page/:page",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

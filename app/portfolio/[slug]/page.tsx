@@ -3,54 +3,24 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSupabasePublic } from "@/lib/supabasePublic";
+import { getPublicProjectBySlug, getPublicProjects } from "@/lib/publicProjects";
 
-export const revalidate = 3600;
-
-type DbProject = {
-  id: number;
-  slug: string;
-  title: string;
-  category: string | null;
-  description: string | null;
-  image_url: string | null;
-  project_url: string | null;
-};
+export const dynamic = "force-static";
+export const dynamicParams = true;
 
 function normalizeExternalUrl(input: string) {
   const raw = (input ?? "").trim();
   if (!raw) return "";
 
   if (/^https?:\/\//i.test(raw)) return raw;
-
   if (/^\/\//.test(raw)) return `https:${raw}`;
 
   return `https://${raw}`;
 }
 
-async function getProjectBySlug(slug: string) {
-  const supabase = getSupabasePublic();
-
-  const { data, error } = await supabase
-    .from("projects")
-    .select("id,slug,title,category,description,image_url,project_url")
-    .eq("is_published", true)
-    .eq("slug", slug)
-    .single();
-
-  if (error || !data) return null;
-
-  const p = data as DbProject;
-
-  return {
-    id: p.id,
-    slug: p.slug,
-    title: p.title,
-    category: p.category ?? "Project",
-    description: p.description ?? "",
-    image: p.image_url ?? "https://picsum.photos/1200/800?random=999",
-    url: p.project_url ?? "",
-  };
+export async function generateStaticParams() {
+  const projects = await getPublicProjects();
+  return projects.map((project) => ({ slug: project.slug }));
 }
 
 export default async function ProjectDetailsPage({
@@ -59,7 +29,7 @@ export default async function ProjectDetailsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const project = await getPublicProjectBySlug(slug);
 
   if (!project) notFound();
 
@@ -71,16 +41,12 @@ export default async function ProjectDetailsPage({
 
       <main className="container mx-auto px-6 pt-28 pb-20">
         <div className="mb-8">
-          <Link
-            href="/portfolio"
-            className="text-slate-400 hover:text-white transition-colors"
-          >
-            ← Back to Portfolio
+          <Link href="/portfolio" className="text-slate-400 hover:text-white transition-colors">
+            Back to Portfolio
           </Link>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-10 items-start">
-          {/* Image */}
           <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 bg-slate-900">
             <Image
               src={project.image}
@@ -92,19 +58,14 @@ export default async function ProjectDetailsPage({
             />
           </div>
 
-          {/* Content */}
           <div className="bg-slate-900/40 border border-white/10 rounded-3xl p-8">
             <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-teal-300 text-sm font-semibold mb-6">
               {project.category}
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-black text-white mb-4">
-              {project.title}
-            </h1>
+            <h1 className="text-3xl md:text-5xl font-black text-white mb-4">{project.title}</h1>
 
-            <p className="text-slate-300 leading-8 text-lg mb-8">
-              {project.description}
-            </p>
+            <p className="text-slate-300 leading-8 text-lg mb-8">{project.description}</p>
 
             <div className="flex flex-wrap gap-4">
               {liveUrl ? (
@@ -125,8 +86,6 @@ export default async function ProjectDetailsPage({
                 Contact Me
               </Link>
             </div>
-
-
           </div>
         </div>
       </main>

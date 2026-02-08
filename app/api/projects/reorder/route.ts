@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { rateLimit } from "@/lib/rateLimit";
+import { revalidatePortfolioOnDemand } from "@/lib/publicProjects";
 
 export const runtime = "nodejs";
 
@@ -93,8 +94,16 @@ export async function POST(req: Request) {
     const { error: e3 } = await supabase.from("projects").update({ sort_order: bOrder }).eq("id", aId);
     if (e3) return NextResponse.json({ ok: false, message: "Reorder failed." }, { status: 500 });
 
+    let revalidated = true;
+    try {
+      await revalidatePortfolioOnDemand();
+    } catch (cacheError) {
+      revalidated = false;
+      console.error("project reorder revalidation error:", cacheError);
+    }
+
     return NextResponse.json(
-      { ok: true },
+      { ok: true, revalidated },
       {
         headers: {
           "RateLimit-Limit": String(rl.limit),

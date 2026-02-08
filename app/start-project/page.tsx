@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StartProjectForm from "@/components/StartProjectForm";
 
-export const revalidate = 3600;
+export const dynamic = "force-static";
 
 export default function StartProjectPage() {
   return (

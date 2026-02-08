@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { rateLimit } from "@/lib/rateLimit";
+import { revalidatePortfolioOnDemand } from "@/lib/publicProjects";
 
 export const runtime = "nodejs";
 
@@ -70,8 +71,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Delete failed." }, { status: 500 });
     }
 
+    let revalidated = true;
+    try {
+      await revalidatePortfolioOnDemand();
+    } catch (cacheError) {
+      revalidated = false;
+      console.error("project delete revalidation error:", cacheError);
+    }
+
     return NextResponse.json(
-      { ok: true },
+      { ok: true, revalidated },
       {
         headers: {
           "RateLimit-Limit": String(rl.limit),
